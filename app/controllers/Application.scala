@@ -10,14 +10,14 @@ import services.Mail
 import play.api.mvc._
 import play.api.libs.json._
 import play.api.Play.current
-
+import views.html.{index, main}
 
 
 object Application extends Controller {
 
 
   def index = Action {
-    Ok
+    Ok(views.html.index.render("HELLO"))
   }
   def change = Action {
    Ok
