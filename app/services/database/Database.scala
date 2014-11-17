@@ -5,6 +5,7 @@ import play.api.mvc._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import reactivemongo.bson.BSONObjectID
+import services.{Feed, User, JsonFormats}
 import scala.concurrent.Future
 
 // Reactive Mongo imports
@@ -45,7 +46,7 @@ object Database extends Controller with MongoController {
   // Using case classes + Json Writes and Reads //
   // ------------------------------------------ //
   import play.api.data.Form
-  import services.database.JsonFormats._
+  import JsonFormats._
 
   def create = Action.async {
     val user = User(BSONObjectID.generate, 29, "John", "Smith", List(

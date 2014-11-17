@@ -15,7 +15,6 @@ import views.html.{index, main}
 
 object Application extends Controller {
 
-
   def index = Action {
     Ok(views.html.index.render("HELLO"))
   }
@@ -28,5 +27,4 @@ object Application extends Controller {
     Mail.sendMail("Subject", "<b>content<b> asdasd </br>")(List("iraasta@gmail.com"))
     Ok("")
   }
-
 }
