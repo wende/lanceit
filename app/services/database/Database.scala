@@ -1,5 +1,6 @@
 package services.database
 
+import play.Logger
 import play.modules.reactivemongo.json.collection.JSONCollection
 import reactivemongo.api.Collection
 import reactivemongo.api.indexes.{IndexType, Index}
@@ -22,7 +23,7 @@ object Database {
       dropDups = false,
       sparse = false, None,
       BSONDocument( "expireAfterSeconds" -> 0 )
-    ))
+    )).map( Logger info _.toString)
     collection
   }
 }
