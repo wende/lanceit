@@ -13,8 +13,9 @@ class Global extends GlobalSettings {
 
   override def onStart(application :Application)
   {
+    val time = Calendar.getInstance().getTimeInMillis
     Logger.info("Server started and configured")
-    val item = FeedItem("iraasta","Title","Desc", Calendar.getInstance().getTimeInMillis,0,0,BSONDateTime(0))
+    val item = FeedItem("iraasta","Title","Desc",time ,0,0,BSONDateTime(time + 1000*60*60*24*7))
     Logger.info(Json.toJson(item).toString())
     Database.feeds.insert(item)
   }
