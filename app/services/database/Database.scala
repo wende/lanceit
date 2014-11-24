@@ -1,95 +1,25 @@
 package services.database
 
-import play.api._
-import play.api.mvc._
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.api.libs.json._
-import reactivemongo.bson.BSONObjectID
-import services.{Feed, User, JsonFormats}
-import scala.concurrent.Future
-
-// Reactive Mongo imports
-import reactivemongo.api._
-
-// Reactive Mongo plugin, including the JSON-specialized collection
-import play.modules.reactivemongo.MongoController
 import play.modules.reactivemongo.json.collection.JSONCollection
+import reactivemongo.api.Collection
+import reactivemongo.api.indexes.{IndexType, Index}
+import reactivemongo.bson.{BSONDocument, BSONInteger}
+import services.database.DatabaseTemplate._
+import play.api.libs.concurrent.Execution.Implicits._
 
-/*
- * Example using ReactiveMongo + Play JSON library.
- *
- * There are two approaches demonstrated in this controller:
- * - using JsObjects directly
- * - using case classes that can be turned into Json using Reads and Writes.
- *
- * This controller uses case classes and their associated Reads/Writes
- * to read or write JSON structures.
- *
- * Instead of using the default Collection implementation (which interacts with
- * BSON structures + BSONReader/BSONWriter), we use a specialized
- * implementation that works with JsObject + Reads/Writes.
- *
- * Of course, you can still use the default Collection implementation
- * (BSONCollection.) See ReactiveMongo examples to learn how to use it.
- */
-object Database extends Controller with MongoController {
-  /*
-   * Get a JSONCollection (a Collection implementation that is designed to work
-   * with JsObject, Reads and Writes.)
-   * Note that the `collection` is not a `val`, but a `def`. We do _not_ store
-   * the collection reference to avoid potential problems in development with
-   * Play hot-reloading.
-   */
-  def collection: JSONCollection = db.collection[JSONCollection]("persons")
+object Database {
 
-  // ------------------------------------------ //
-  // Using case classes + Json Writes and Reads //
-  // ------------------------------------------ //
-  import play.api.data.Form
-  import JsonFormats._
+  def persons: JSONCollection = ttl{ db.collection[JSONCollection]("persons")}
+  def feeds : JSONCollection = ttl{ db.collection[JSONCollection]("feeds")}
 
-  def create = Action.async {
-    val user = User(BSONObjectID.generate, 29, "John", "Smith", List(
-      Feed("Slashdot news", "http://slashdot.org/slashdot.rdf")))
-    // insert the user
-    val futureResult = collection.insert(user)
-    // when the insert is performed, send a OK 200 result
-    futureResult.map(_ => Ok)
-  }
 
-  def createFromJson = Action.async(parse.json) { request =>
-    /*
-     * request.body is a JsValue.
-     * There is an implicit Writes that turns this JsValue as a JsObject,
-     * so you can call insert() with this JsValue.
-     * (insert() takes a JsObject as parameter, or anything that can be
-     * turned into a JsObject using a Writes.)
-     */
-    request.body.validate[User].map { user =>
-      // `user` is an instance of the case class `models.User`
-      collection.insert(user).map { lastError =>
-        Logger.debug(s"Successfully inserted with LastError: $lastError")
-        Created
-      }
-    }.getOrElse(Future.successful(BadRequest("invalid json")))
-  }
-
-  def findByName(lastName: String) = Action.async {
-    // let's do our query
-    val cursor: Cursor[User] = collection.
-      // find all people with name `name`
-      find(Json.obj("lastName" -> lastName)).
-      // sort them by creation date
-      sort(Json.obj("created" -> -1)).
-      // perform the query and get a cursor of JsObject
-      cursor[User]
-
-    // gather all the JsObjects in a list
-    val futureUsersList: Future[List[User]] = cursor.collect[List]()
-
-    // everything's ok! Let's reply with the array
-    futureUsersList.map { persons =>
-      Ok(persons.toString())
-    }
+  def ttl(collection : => JSONCollection)(implicit field : String = "expireAt") =
+  {
+    collection.indexesManager.ensure(Index(
+      key = Seq((field, IndexType(BSONInteger(1)))),
+      name = Some(field),
+      options = BSONDocument( "expireAfterSeconds" -> 0 )
+    ))
+    collection
   }
 }

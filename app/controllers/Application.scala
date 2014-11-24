@@ -3,8 +3,6 @@ package controllers
 import actors.WebSocketActor
 import play.api._
 import play.api.libs.json.JsObject
-import play.api.mvc._
-import play.api.Play.current
 import play.modules.reactivemongo.MongoController
 import services.Mail
 import play.api.mvc._
