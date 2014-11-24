@@ -14,7 +14,7 @@ object Database {
   def feeds : JSONCollection = ttl(){ db.collection[JSONCollection]("feeds")}
 
 
-  def ttl( field : String = "expireAt")(collection : => JSONCollection) =
+  def ttl( field : String = "Date")(collection : => JSONCollection) =
   {
     collection.indexesManager.ensure(Index(
       Seq((field, IndexType(BSONInteger(1)))), Some(field),
