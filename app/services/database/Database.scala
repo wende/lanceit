@@ -9,16 +9,19 @@ import play.api.libs.concurrent.Execution.Implicits._
 
 object Database {
 
-  def persons: JSONCollection = ttl{ db.collection[JSONCollection]("persons")}
-  def feeds : JSONCollection = ttl{ db.collection[JSONCollection]("feeds")}
+  def persons: JSONCollection = ttl(){ db.collection[JSONCollection]("persons")}
+  def feeds : JSONCollection = ttl(){ db.collection[JSONCollection]("feeds")}
 
 
-  def ttl(collection : => JSONCollection)(implicit field : String = "expireAt") =
+  def ttl( field : String = "expireAt")(collection : => JSONCollection) =
   {
     collection.indexesManager.ensure(Index(
-      key = Seq((field, IndexType(BSONInteger(1)))),
-      name = Some(field),
-      options = BSONDocument( "expireAfterSeconds" -> 0 )
+      Seq((field, IndexType(BSONInteger(1)))), Some(field),
+      unique = false,
+      background = false,
+      dropDups = false,
+      sparse = false, None,
+      BSONDocument( "expireAfterSeconds" -> 0 )
     ))
     collection
   }
