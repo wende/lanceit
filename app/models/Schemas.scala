@@ -23,7 +23,7 @@ case class User(
 
 case class FeedItem
 (
-  _id : BSONObjectID,
+  _id : Option[BSONObjectID],
   username: String,
   title: String,
   description: String,
