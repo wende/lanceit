@@ -15,7 +15,7 @@ class Global extends GlobalSettings {
   {
     val time = Calendar.getInstance().getTimeInMillis
     Logger.info("Server started and configured")
-    val item = FeedItem(BSONObjectID.generate, "iraasta","Title","Desc",time ,0,0,BSONDateTime(time + 1000*60*60*24*7))
+    val item = FeedItem(Some(BSONObjectID.generate), "iraasta","Title","Desc",time ,0,0,BSONDateTime(time + 1000*60*60*24*7))
     Logger.info(Json.toJson(item).toString())
     Database.feeds.insert(item)
   }
