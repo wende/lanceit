@@ -7,7 +7,7 @@ import play.api.mvc._
 import play.api.libs.json._
 import models.JsonFormats._
 import play.api.libs.concurrent.Execution.Implicits._
-import reactivemongo.bson.BSONDocument
+import reactivemongo.bson.{BSONObjectID, BSONDocument}
 
 import services.database._
 
@@ -21,7 +21,8 @@ object FeedListController extends Controller{
   }
   def add = Action.async(parse.json) { req =>
     req.body.validate[FeedItem].map { feed =>
-      Database.persons.insert(feed).map { err => Created }
+      val newFeed = feed.copy(Some(BSONObjectID.generate))
+      Database.feeds.insert(newFeed).map { err => Created(err.toString + newFeed._id.toString) }
       }.getOrElse(Future.successful(BadRequest("Bad Json")))
     }
   }
