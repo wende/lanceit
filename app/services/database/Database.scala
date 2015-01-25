@@ -10,7 +10,7 @@ import play.api.libs.concurrent.Execution.Implicits._
 
 object Database {
 
-  val persons: JSONCollection = ttl(){ db.collection[JSONCollection]("persons")}
+  val users: JSONCollection = ttl(){ db.collection[JSONCollection]("users")}
   val feeds : JSONCollection = ttl(){ db.collection[JSONCollection]("feeds")}
 
 

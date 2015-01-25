@@ -18,8 +18,11 @@ object JsonFormats {
 case class User(
                 _id : BSONObjectID,
                  age: Int,
+                  phoneNumber: Long,
                  firstName: String,
-                 lastName: String)
+                 lastName: String,
+                  email: String,
+                 balance : Double = 0.0)
 
 case class FeedItem
 (
