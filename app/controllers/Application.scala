@@ -12,7 +12,12 @@ import play.api.Play.current
 import services.database.Database
 import views.html.{index, main}
 
+import play.api.data._
+import play.api.data.Forms._
+import play.api.libs.concurrent.Execution.Implicits._
+
 import scala.concurrent.Future
+import models.JsonFormats._
 
 
 object Application extends Controller {
@@ -23,16 +28,34 @@ object Application extends Controller {
   def change = Action {
    Ok
   }
-  def login(username: String, password: String) = Action.async {
-    val query = Json.obj(
-      "username" -> username,
-      "password" -> password
-    )
-    Database.users.find(query).one[User].map[Result]( user =>
-      Ok(Json.toJson(user))
-    ).fallbackTo {
-      Future.successful(BadRequest)
-    }
+
+  case class LoginData(username : String, password: String)
+  val loginForm = Form(mapping (
+    "username" -> text,
+    "password" -> text
+  )(LoginData.apply)(LoginData.unapply))
+
+  def login = Action.async { implicit req =>
+    val loginData = loginForm.bindFromRequest()
+    loginData.value.map { form =>
+      val query = Json.obj {
+        "username" -> form.username
+        "password" -> form.password
+      }
+      Database.users.find(query).one[User].map[Result](user =>
+        Ok(Json.toJson(user.map{ _.copy(password = "*")}))
+      ).fallbackTo {
+        Future.successful(BadRequest)
+      }
+    } getOrElse Future.successful(BadRequest)
+  }
+  def register = Action.async { req =>
+    val selector = Json.obj("unique" -> true)
+    Json.fromJson[User](req.body.asJson.get).map { user =>
+      Database.users.insert(user).map { err =>
+        Created(Json.obj("success" -> "true", "err" -> err.updatedExisting))
+      } fallbackTo Future.successful(BadRequest(Json.obj("err" -> "User already exists")))
+    } getOrElse Future.successful(BadRequest(Json.obj("err" -> "Insufficient parameters")))
   }
   def socket = WebSocket.acceptWithActor[JsValue, JsValue](req => out => WebSocketActor.props(out))
 

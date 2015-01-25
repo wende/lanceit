@@ -20,6 +20,10 @@ object FeedListController extends Controller{
       feeds => Ok(Json.toJson( Json obj "feeds" -> feeds ))
     }
   }
+  def getById(id: String) = Action.async {
+    val bsonId = BSONObjectID(id)
+    Future.successful(Ok)
+  }
   def add = Action.async(parse.json) { req =>
     req.body.validate[FeedItem].map { feed =>
       val newFeed = feed.copy(Some(BSONObjectID.generate))

@@ -3,15 +3,18 @@
 # ~~~~
 
 # Home page
-GET        /                    controllers.Application.index
-GET        /change              controllers.Application.change
-GET        /mail                controllers.Application.mail
-GET        /socket              controllers.Application.socket
+GET         /                    controllers.Application.index
+GET         /change              controllers.Application.change
+GET         /mail                controllers.Application.mail
+GET         /socket              controllers.Application.socket
 
-GET        /list/get            controllers.FeedListController.get
+POST        /login               controllers.Application.login
+POST        /register            controllers.Application.register
+
+
+GET         /list/get            controllers.FeedListController.get
+GET         /list/get/id         controllers.FeedListController.getById(id : String)
 POST        /list/add            controllers.FeedListController.add
 
-GET        /create              services.database.DatabaseTemplate.create
-
 # Map static resources from the /public folder to the /assets URL path
-GET        /assets/*file        controllers.Assets.at(path="/public", file)
+GET         /assets/*file        controllers.Assets.at(path="/public", file)
