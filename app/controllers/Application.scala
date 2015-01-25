@@ -38,13 +38,14 @@ object Application extends Controller {
   def login = Action.async { implicit req =>
     val loginData = loginForm.bindFromRequest()
     loginData.value.map { form =>
-      val query = Json.obj {
-        "username" -> form.username
+      val query = Json.obj(
+        "username" -> form.username,
         "password" -> form.password
-      }
-      Database.users.find(query).one[User].map[Result](user =>
-        Ok(Json.toJson(user.map{ _.copy(password = "*")}))
-      ).fallbackTo {
+      )
+      Database.users.find(query).one[User].map[Result]{ r => r.map (user =>
+        Ok(Json.toJson(user.copy(password = "****")))
+      ) getOrElse(BadRequest)
+    }.fallbackTo {
         Future.successful(BadRequest)
       }
     } getOrElse Future.successful(BadRequest)
