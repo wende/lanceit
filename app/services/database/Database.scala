@@ -16,7 +16,17 @@ object Database extends Controller with MongoController{
   val users: JSONCollection = unique("username") { db.collection[JSONCollection]("users")}
   val feeds : JSONCollection = ttl(){ db.collection[JSONCollection]("feeds")}
 
-
+  def index(field : String)(collection : => JSONCollection) = {
+    collection.indexesManager.ensure(Index(
+      Seq((field, IndexType(BSONInteger(1)))), Some(field),
+      unique = false,
+      background = false,
+      dropDups = false,
+      sparse = false, None,
+      BSONDocument()
+    )).map( Logger info _.toString)
+    collection
+  }
   def ttl( field : String = "expireAt")(collection : => JSONCollection)  = {
     collection.indexesManager.ensure(Index(
       Seq((field, IndexType(BSONInteger(1)))), Some(field),

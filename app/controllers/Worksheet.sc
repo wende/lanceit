@@ -1,6 +1,11 @@
-case class Test (a: String, b: String)
+import scala.pickling._         // This imports names only
+import scala.pickling.json._    // Imports PickleFormat
+import scala.pickling.static._  // Avoid runtime pickler
 
-val a = Test("Yo", "Mama")
-val b = Test("Yo", "Mam")
+case class MyPickle(a : Int)
 
-print(a == b)
+println("Picklikng")
+val pickle = MyPickle(10).pickle.value
+println("Picklikng " + pickle)
+println(JSONPickle(pickle).unpickle[MyPickle])
+
