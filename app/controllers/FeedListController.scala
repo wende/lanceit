@@ -31,7 +31,7 @@ object FeedListController extends Controller{
       req.body.validate[FeedData].map { feed =>
         val newFeed = feed.itemify(user.username)
         Database.feeds.insert(newFeed).map { err =>
-          Database.users.update()
+          //Database.users.update()
           Created(newFeed._id.toString())
         }
       }.getOrElse(Future.successful(BadRequest("Bad Json")))
