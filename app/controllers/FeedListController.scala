@@ -32,7 +32,7 @@ object FeedListController extends Controller{
         val newFeed = feed.itemify(user.username)
         Database.feeds.insert(newFeed).map { err =>
           //Database.users.update()
-          Created(newFeed._id.toString())
+          Created(newFeed._id.stringify)
         }
       }.getOrElse(Future.successful(BadRequest("Bad Json")))
     }
