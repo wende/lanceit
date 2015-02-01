@@ -30,7 +30,10 @@ object FeedListController extends Controller{
     authorized { user =>
       req.body.validate[FeedData].map { feed =>
         val newFeed = feed.itemify(user.username)
-        Database.feeds.insert(newFeed).map { err => Created(newFeed._id.toString())}
+        Database.feeds.insert(newFeed).map { err =>
+          Database.users.update()
+          Created(newFeed._id.toString())
+        }
       }.getOrElse(Future.successful(BadRequest("Bad Json")))
     }
   }
@@ -45,9 +48,9 @@ object FeedListController extends Controller{
       val feeds = user.activeFeeds.getOrElse(List.empty)
       if(feeds.length != 0) {
         Database.feeds.find(Json.obj("_id" -> Json.obj("$in" -> Json.arr(feeds)))).cursor[JsObject].collect[List]()
-          .map { a => Ok(a.toString)}
+          .map { a => Ok(Json.obj("feeds" -> Json.arr(a)))}
       } else {
-        Future.successful(Ok(Json.obj()))
+        Future.successful(Ok(Json.obj("feeds" -> Json.arr())))
       }
     }
   }
