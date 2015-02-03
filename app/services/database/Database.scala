@@ -14,7 +14,7 @@ import reactivemongo.api._
 object Database extends Controller with MongoController{
 
   val users: JSONCollection = unique("username") { db.collection[JSONCollection]("users")}
-  val feeds : JSONCollection = ttl(){ db.collection[JSONCollection]("feeds")}
+  val feeds : JSONCollection = index("expireAt") { db.collection[JSONCollection]("feeds")}
 
   def index(field : String)(collection : => JSONCollection) = {
     collection.indexesManager.ensure(Index(

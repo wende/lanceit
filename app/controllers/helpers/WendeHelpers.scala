@@ -1,43 +1,48 @@
 package controllers.helpers
 
+import java.util.Calendar
+
+import play.api.Application
+import play.api.cache.Cache
 import play.api.libs.json.{JsArray, Json, JsObject}
 import play.api.libs.json.Json.JsValueWrapper
+import play.libs.F.Tuple
 import reactivemongo.bson.BSONObjectID
 
+import scala.concurrent.duration._
 import scala.pickling._
+import scala.reflect.ClassTag
 
-object WendeHelpers {
-  implicit def tupleToJson(a : (String, JsValueWrapper )) : JsObject  = Json.obj(a)
-  implicit def arrToJson(a : List[JsValueWrapper] ) : JsArray  = Json.arr(a:_*)
-
+object Helpers {
+  def time[R](block: => R): (R, Long) = {
+    val t0 = System.nanoTime()
+    val result = block    // call-by-name
+    val t1 = System.nanoTime()
+    (result, t1 - t0)
+  }
+  def now = Calendar.getInstance().getTimeInMillis
 }
-object Vinegar {
-  implicit def BSONObjectIdPickler(implicit stringPickler: SPickler[String], stringUnpickler: Unpickler[String], pf: PickleFormat) =
-    new SPickler[BSONObjectID] with Unpickler[BSONObjectID] {
-      val format: PickleFormat = pf
-      def pickle(id: BSONObjectID, builder: PBuilder):Unit = {
-        builder.beginEntry(id)
-        builder.hintStaticallyElidedType()
-        builder.hintTag(FastTypeTag.String)
-        builder.pinHints()
-        builder.putField("id", { b=>
-          stringPickler.pickle(id.stringify,builder)
-        })
-        builder.unpinHints()
-        builder.endEntry()
-      }
-      def unpickle(tpe: => FastTypeTag[_], preader: PReader): Any = {
-        val reader = preader
-        reader.hintStaticallyElidedType()
-        reader.hintTag(FastTypeTag.String)
-        reader.pinHints()
-        val r1 = reader.readField("id")
-        r1.beginEntryNoTag()
-        val id = stringUnpickler.unpickle(FastTypeTag.String, r1).asInstanceOf[String]
-        r1.endEntry()
-        reader.unpinHints()
-        BSONObjectID(id)
-      }
-    }
+case class Memoize[-T , +R : ClassTag](duration : Duration, refreshOnGet : Boolean = false)(f: T => R)
+                                      (implicit app : Application) extends (T => R) {
+  val safeCounter = Cache.getAs[Int](Memoize.CACHE_KEY).getOrElse(0)
+  Cache.set(Memoize.CACHE_KEY, safeCounter + 1)
 
+  def apply(x: T) : R = {
+    val key = safeCounter + x.toString
+    val result = Cache.getAs[R](key).getOrElse {
+      val result = f(x)
+      Cache.set(key, result, duration)
+      result
+    }
+    if(refreshOnGet) Cache.set(key, result, duration)
+    result
+  }
+}
+object Memoize {
+  implicit def functionToMemoizer[T,R : ClassTag] (f:(T => R)) : Memoizable[T,R] = Memoizable(f)
+  lazy val CACHE_KEY = "memoize-safe-counter"
+}
+case class Memoizable[T,R : ClassTag](f: (T => R) ){
+  def memoize(implicit app : Application) = Memoize(1.minute, refreshOnGet = false)(f)
+  def memoize(duration : Duration, refreshOnGet : Boolean)(implicit app : Application) = Memoize(duration,refreshOnGet)(f)
 }

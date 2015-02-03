@@ -49,11 +49,11 @@ object Application extends Controller {
       Database.users.find(query).one[User].map[Result]{ r => r.map { user =>
         val u = user.copy(password = "****")
         Ok(Json.toJson(u)).withSession(USER_CACHE -> u.username)
-      } getOrElse BadRequest
+      } getOrElse BadRequest("Wrong login or password")
     }.fallbackTo {
-        Future.successful(BadRequest)
+        Future.successful(InternalServerError)
       }
-    } getOrElse Future.successful(BadRequest)
+    } getOrElse Future.successful(BadRequest("Wrong parameters"))
   }
   def register = Action.async { req =>
     val selector = Json.obj("unique" -> true)
