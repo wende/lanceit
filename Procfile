@@ -1,1 +1,1 @@
-web: target/universal/stage/bin/lanceit -Dhttp.port=${PORT} -DapplyEvolutions.default=true
+web: target/universal/stage/bin/lanceit -Dhttp.port=${PORT}

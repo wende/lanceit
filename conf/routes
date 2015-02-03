@@ -3,22 +3,24 @@
 # ~~~~
 
 # Home page
-GET         /                       controllers.Application.index
-GET         /change                 controllers.Application.change
-GET         /mail                   controllers.Application.mail
-GET         /socket                 controllers.Application.socket
+GET         /                                                  controllers.Application.index
+GET         /change                                            controllers.Application.change
+GET         /mail                                              controllers.Application.mail
+GET         /socket                                            controllers.Application.socket
 
-POST        /login                  controllers.Application.login
-POST        /register               controllers.Application.register
+POST        /login                                             controllers.Application.login
+POST        /register                                          controllers.Application.register
 
-GET         /list/get               controllers.FeedListController.get
-GET         /list/get/:id           controllers.FeedListController.getById(id : String)
-POST        /list/add               controllers.FeedListController.add
-GET         /list/yours             controllers.FeedListController.yours
-GET         /list/active            controllers.FeedListController.active
-GET         /list/take/:id          controllers.FeedListController.take(id : String)
+GET         /list/get                                          controllers.FeedListController.get
+GET         /list/get/:id                                      controllers.FeedListController.getById(id : String)
+POST        /list/add                                          controllers.FeedListController.add
+GET         /list/yours                                        controllers.FeedListController.yours
+GET         /list/active                                       controllers.FeedListController.active
+GET         /list/take/:id                                     controllers.FeedListController.take(id : String)
+
+GET         /loaderio-5d49d4113659c016bdb075c07a13baf9/         controllers.Assets.at(path="/public", file="loaderio-5d49d4113659c016bdb075c07a13baf9.txt")
+
+GET         /memoize/:param                                    controllers.Tests.memoization(param : Int)
 
 # Map static resources from the /public folder to the /assets URL path
-GET         /assets/*file           controllers.Assets.at(path="/public", file)
-
-GET         /memoize/:param         controllers.Tests.memoization(param : Int)
+GET         /assets/*file                                      controllers.Assets.at(path="/public", file)
