@@ -43,7 +43,7 @@ object FeedListController extends Controller{
       req.body.validate[FeedData].map { feed =>
         val newFeed = feed.itemify(user.username)
         val selector = Json.obj("username" -> newFeed.username)
-        val update = Json.obj("$push" -> newFeed._id)
+        val update = Json.obj("$push" -> Json.obj("feeds" -> newFeed._id))
         Database.users.update(selector, update)
         Database.feeds.insert(newFeed).map { err =>
 
@@ -84,6 +84,9 @@ object FeedListController extends Controller{
       BSONObjectID.parse(id).map { _id =>
         Database.feeds.find(Json.obj("_id" -> _id)).one[FeedItem].map { feedOpt =>
           feedOpt.map { feed =>
+            val selector = Json.obj("username" -> feed.username)
+            val update = Json.obj("$push" -> Json.obj("activeFeeds" -> feed._id))
+            Database.users.update(selector, update)
             Ok(Json.obj("feed" -> feed))
           } getOrElse Ok(Json.obj("feed" -> ""))
         } fallbackTo Future.successful(InternalServerError)
