@@ -23,3 +23,6 @@ libraryDependencies += "org.scala-lang" %% "scala-pickling" % "0.9.0"
 unmanagedResourceDirectories in Test <+=  baseDirectory ( _ /"target/web/public/test" )
 
 herokuAppName in Compile := "lanceit"
+
+libraryDependencies += "com.newrelic.agent.java" % "newrelic-agent" % "3.7.0"
+
