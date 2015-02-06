@@ -1042,10 +1042,7 @@ select {
   top: 0;
   left: 0;
   text-decoration: none;
-  -webkit-transition: all 0.4s ease-in-out;
-  -moz-transition: all 0.4s ease-in-out;
-  -ms-transition: all 0.4s ease-in-out;
-  -o-transition: all 0.4s ease-in-out;
+
 }
 .team-section .member .mask .mask-inner {
   position: relative;

@@ -18,6 +18,7 @@ import Application.authorized
 
 object FeedListController extends Controller{
 
+  val maxDistance = 20000;
   def near(lat: Double, lng: Double, max: Double) =
     $("$near" -> $("type" -> "Point", "coordinates" -> $arr(lat,lng)), "$maxDistance" -> max)
 
@@ -27,6 +28,16 @@ object FeedListController extends Controller{
       feeds => Ok(Json.toJson( Json obj "feeds" -> feeds ))
     }
   }
+  def getByLatLng(lat : Double, lng : Double, max: Double = maxDistance) = Action.async {
+    val selector = $("expireAt" -> $("$gt" -> BSONDateTime(Helpers.now)), "loc" -> near(lat,lng,max))
+    Database.feeds.find(selector).cursor[FeedItem].collect[List]().map {
+      feeds => Ok(Json.toJson( Json obj "feeds" -> feeds ))
+    } fallbackTo Future.successful(InternalServerError)
+  }
+  def getByLatLngMax(lat: Double, lng: Double, max: Double) = {
+    getByLatLng(lat, lng, max)
+  }
+
   def getById(id: String) = Action.async {
     BSONObjectID.parse(id).map { _id =>
       val bsonId = $("_id" -> _id)
@@ -93,4 +104,5 @@ object FeedListController extends Controller{
       } getOrElse Future.successful(BadRequest)
     }
   }
+
 }

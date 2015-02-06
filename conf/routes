@@ -13,12 +13,14 @@ POST        /register                                          controllers.Appli
 
 GET         /list/get                                          controllers.FeedListController.get
 GET         /list/get/:id                                      controllers.FeedListController.getById(id : String)
+GET         /list/get/:lat/:lng                                controllers.FeedListController.getByLatLng(lat : Double, lng : Double)
+GET         /list/get/:lat/:lng/:max                           controllers.FeedListController.getByLatLngMax(lat : Double, lng : Double, max: Double)
 POST        /list/add                                          controllers.FeedListController.add
 GET         /list/yours                                        controllers.FeedListController.yours
 GET         /list/active                                       controllers.FeedListController.active
 GET         /list/take/:id                                     controllers.FeedListController.take(id : String)
 
-GET         /loaderio-5d49d4113659c016bdb075c07a13baf9/         controllers.Assets.at(path="/public", file="loaderio-5d49d4113659c016bdb075c07a13baf9.txt")
+GET         /loaderio-5d49d4113659c016bdb075c07a13baf9/        controllers.Assets.at(path="/public", file="loaderio-5d49d4113659c016bdb075c07a13baf9.txt")
 
 GET         /memoize/:param                                    controllers.Tests.memoization(param : Int)
 
