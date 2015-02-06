@@ -20,6 +20,9 @@ object Helpers {
     val t1 = System.nanoTime()
     (result, t1 - t0)
   }
+  def $(a:(String,JsValueWrapper)*) = Json.obj(a:_*)
+  def $arr(a:(JsValueWrapper)*) = Json.arr(a:_*)
+
   def now = Calendar.getInstance().getTimeInMillis
 }
 case class Memoize[-T , +R : ClassTag](duration : Duration, refreshOnGet : Boolean = false)(f: T => R)

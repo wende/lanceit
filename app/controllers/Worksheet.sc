@@ -1,5 +1,12 @@
-def somefun(a: Int, b:Int)
+val x = 10
+val k = 2
+val iloscKul = 3
 
-val fun = somefun(10, _)
+var suma = 0.0
+var mnożnik = 1000
+do {
+  suma = k*mnożnik * (1- Math.pow(2,iloscKul)) / (-1)
+  mnożnik/=2
+} while(suma > x*1000)
 
-fun(20)
+println(suma)

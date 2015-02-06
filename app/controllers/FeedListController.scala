@@ -2,52 +2,51 @@ package controllers
 
 import controllers.helpers.{Helpers, Memoize}
 import models.{FeedData, FeedItem}
-import org.joda.time.DateTime
-import play.api.Logger
-import play.api.libs.json.Json.JsValueWrapper
-import play.api.mvc.BodyParsers._
 import play.api.mvc._
 import play.api.libs.json._
 import models.JsonFormats._
 import play.api.libs.concurrent.Execution.Implicits._
 import reactivemongo.bson._
 import play.modules.reactivemongo.json.BSONFormats._
-
 import play.api.Play.current
-
 import services.database._
-
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import helpers.Helpers.$
+import helpers.Helpers.$arr
+import Application.authorized
 
 object FeedListController extends Controller{
+
+  def near(lat: Double, lng: Double, max: Double) =
+    $("$near" -> $("type" -> "Point", "coordinates" -> $arr(lat,lng)), "$maxDistance" -> max)
+
   def get = Action.async {
-    val selector = Json.obj("expireAt" -> Json.obj("$gt" -> BSONDateTime(Helpers.now)))
+    val selector = $("expireAt" -> $("$gt" -> BSONDateTime(Helpers.now)))
     Database.feeds.find(selector).cursor[FeedItem].collect[List]().map {
       feeds => Ok(Json.toJson( Json obj "feeds" -> feeds ))
     }
   }
   def getById(id: String) = Action.async {
     BSONObjectID.parse(id).map { _id =>
-      val bsonId = Json.obj("_id" -> _id)
+      val bsonId = $("_id" -> _id)
       Database.feeds.find(bsonId).one[FeedItem].map { feedOpt =>
         feedOpt.map { feed =>
-          Ok(Json.obj("feed" -> feed))
-        } getOrElse Ok(Json.obj("feed" -> ""))
+          Ok($("feed" -> feed))
+        } getOrElse Ok($("feed" -> ""))
       } fallbackTo Future.successful(InternalServerError)
     } getOrElse Future.successful(BadRequest)
   }
-  import Application.authorized
   def add = Action.async(parse.json) { implicit req =>
     authorized { user =>
       req.body.validate[FeedData].map { feed =>
         val newFeed = feed.itemify(user.username)
-        val selector = Json.obj("username" -> newFeed.username)
-        val update = Json.obj("$push" -> Json.obj("feeds" -> newFeed._id))
+        val selector = $("username" -> newFeed.username)
+        val update = $("$push" -> $("feeds" -> newFeed._id))
         Database.users.update(selector, update)
         Database.feeds.insert(newFeed).map { err =>
 
-          Created(Json.obj("id" -> newFeed._id.stringify))
+          Created($("id" -> newFeed._id.stringify))
         }
 
       }.getOrElse(Future.successful(BadRequest("Bad Json")))
@@ -62,39 +61,36 @@ object FeedListController extends Controller{
   def yours() = Action.async { implicit req =>
     authorized { user =>
       val feeds = user.feeds.getOrElse(List.empty)
-      getFeedsByList(feeds).map { a => Ok(Json.obj("feeds" -> a))}
+      getFeedsByList(feeds).map { a => Ok($("feeds" -> a))}
     }
   }
   def active() = Action.async { implicit req =>
     authorized { user =>
       val feeds = user.activeFeeds.getOrElse(List.empty)
-      getFeedsByList(feeds).map { a => Ok(Json.obj("feeds" -> a))}
+      getFeedsByList(feeds).map { a => Ok($("feeds" -> a))}
     }
   }
 
   val getFeedsByList = Memoize {1.hour} { feeds: List[BSONObjectID] =>
     feeds.length match {
       case 0 => Future.successful(List[JsObject]())
-      case _ => Database.feeds.find(Json.obj("_id" -> Json.obj("$in" -> Json.arr(feeds)))).cursor[JsObject].collect[List]()
+      case _ => Database.feeds.find($("_id" -> $("$in" -> $arr(feeds)))).cursor[JsObject].collect[List]()
     }
   }
 
   def take(id: String) = Action.async { implicit req =>
     authorized { user =>
       BSONObjectID.parse(id).map { _id =>
-        Database.feeds.find(Json.obj("_id" -> _id)).one[FeedItem].map { feedOpt =>
+        Database.feeds.find($("_id" -> _id)).one[FeedItem].flatMap { feedOpt =>
           feedOpt.map { feed =>
-            val selector = Json.obj("username" -> feed.username)
-            val update = Json.obj("$push" -> Json.obj("activeFeeds" -> feed._id))
-            Database.users.update(selector, update)
-            Ok(Json.obj("feed" -> feed))
-          } getOrElse Ok(Json.obj("feed" -> ""))
+            val selector = $("username" -> feed.username)
+            val update = $("$push" -> $("activeFeeds" -> feed._id))
+            Database.users.update(selector, update).map { _ =>
+              Ok($("feed" -> feed))
+            } fallbackTo Future.successful(InternalServerError)
+          } getOrElse Future.successful(Ok($("feed" -> "")))
         } fallbackTo Future.successful(InternalServerError)
       } getOrElse Future.successful(BadRequest)
     }
   }
-
 }
-
-
-

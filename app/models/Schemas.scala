@@ -12,6 +12,8 @@ object JsonFormats {
   import play.api.libs.json.Json
 
   // Generates Writes and Reads for Feed and User thanks to Json Macros
+
+  implicit val geoFormat  = Json.format[GeoBSON]
   implicit val feedDataFormat = Json.format[FeedData]
   implicit val feedFormat = Json.format[FeedItem]
   implicit val userFormat = Json.format[User]
@@ -42,7 +44,16 @@ case class FeedData
   def itemify(username : String) = {
     val time = BSONDateTime(DateTime.now().getMillis)
     val expireAt = BSONDateTime(time.value + expireAfter * 1000 * 60)
-    FeedItem(BSONObjectID.generate, username,title,description, time ,lat,lng, category,cost, expireAt)
+    FeedItem(
+      BSONObjectID.generate,
+      username,
+      title,
+      description,
+      Point(lat, lng).toBSON,
+      category,
+      cost,
+      time,
+      expireAt)
   }
 }
 
@@ -53,10 +64,15 @@ case class FeedItem
   username: String,
   title: String,
   description: String,
-  createdAt: BSONDateTime,
-  lat: Double,
-  lng: Double,
+  loc: GeoBSON,
   category: Option[Int],
   cost: Float,
-  expireAt: BSONDateTime)
+  createdAt: BSONDateTime,
+  expireAt: BSONDateTime,
+  stage: Int = 0,
+  completed: Boolean = false)
 
+case class Point(lat: Double, lng : Double){
+  lazy val toBSON = GeoBSON("Point", List(lat, lng))
+}
+case class GeoBSON(`type` : String, coordinates: List[Double] )

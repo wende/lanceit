@@ -13,8 +13,8 @@ import reactivemongo.api._
 
 object Database extends Controller with MongoController{
 
-  val users: JSONCollection = unique("username") { db.collection[JSONCollection]("users")}
-  val feeds : JSONCollection = index("expireAt") { db.collection[JSONCollection]("feeds")}
+  val users: JSONCollection = unique("username")(db.collection[JSONCollection]("users"))
+  val feeds : JSONCollection = index("expireAt")(geo("loc")(db.collection[JSONCollection]("feeds")))
 
   def index(field : String)(collection : => JSONCollection) = {
     collection.indexesManager.ensure(Index(
@@ -42,6 +42,12 @@ object Database extends Controller with MongoController{
     collection.indexesManager.ensure(Index(
       Seq((field, IndexType(BSONInteger(1)))), Some(field),
       unique = true
+    ))
+    collection
+  }
+  def geo(field : String)(collection: => JSONCollection) = {
+    collection.indexesManager.ensure(Index(
+      Seq((field, IndexType(BSONString("2dsphere")))), Some(field)
     ))
     collection
   }
