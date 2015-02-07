@@ -11,7 +11,7 @@ import play.api.mvc._
 import play.api.libs.json._
 import play.api.Play.current
 import services.database.Database
-import views.html.{index, main}
+import views.html.{index, head}
 import scala.concurrent.duration._
 import play.api.data._
 import play.api.data.Forms._
@@ -27,7 +27,7 @@ object Application extends Controller {
   val USER_CACHE = "username"
 
   def index = Action {
-    Ok(views.html.index.render("HELLO"))
+    Redirect("assets/homepage/index-android.html")
   }
   def change = Action {
    Ok
