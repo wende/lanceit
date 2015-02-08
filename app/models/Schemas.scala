@@ -21,7 +21,6 @@ object JsonFormats {
 
 case class User(
   username: String ,
-  age: Int,
   phoneNumber: Long,
   firstName: String,
   lastName: String,
