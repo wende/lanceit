@@ -6,6 +6,7 @@ import play.api._
 import play.api.cache.Cache
 import play.api.libs.json.JsObject
 import play.modules.reactivemongo.MongoController
+import play.twirl.api.Html
 import services.Mail
 import play.api.mvc._
 import play.api.libs.json._
@@ -96,7 +97,7 @@ object Application extends Controller {
   def socket = WebSocket.acceptWithActor[JsValue, JsValue](req => out => WebSocketActor.props(out))
 
   def mail = Action {
-    Mail.sendMail("Subject", "<b>content<b> asdasd </br>")(List("iraasta@gmail.com"))
+    Mail.sendMail("Subject", Html("<b>content<b> asdasd </br>"))(List("iraasta@gmail.com"))
     Ok("")
   }
 }

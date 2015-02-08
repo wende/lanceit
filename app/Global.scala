@@ -1,5 +1,6 @@
 import java.util.Calendar
 
+import controllers.Newsletter
 import models.FeedItem
 import play._
 import play.api.libs.json._
