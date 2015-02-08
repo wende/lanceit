@@ -12,6 +12,7 @@ GET         /socket                                            controllers.Appli
 
 POST        /login                                             controllers.Application.login
 POST        /register                                          controllers.Application.register
+POST        /confirmNumber                                     controllers.Application.confirmNumber
 
 GET         /list/get                                          controllers.FeedListController.get
 GET         /list/get/:id                                      controllers.FeedListController.getById(id : String)

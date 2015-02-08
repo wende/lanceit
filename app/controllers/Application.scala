@@ -98,4 +98,20 @@ object Application extends Controller {
     Mail.sendMail("Subject", Html("<b>content<b> asdasd </br>"))(List("iraasta@gmail.com"))
     Ok("")
   }
+
+  val numberForm = Form (mapping (
+    "username" -> text,
+    "phoneNumber" -> longNumber
+  )(NumberConfirmation.apply)(NumberConfirmation.unapply))
+
+  case class NumberConfirmation(username : String, phoneNumber : Long)
+  def confirmNumber() = Action.async { implicit req =>
+    numberForm.bindFromRequest().value.map { nc =>
+      val selector = $("username" -> nc.username)
+      val update = $("$set"-> $("phoneNumber" -> nc.phoneNumber))
+      Database.users.update(selector, update).map { _ =>
+        Ok
+      } fallbackTo Future.successful(InternalServerError)
+    } getOrElse Future.successful(BadRequest)
+  }
 }
