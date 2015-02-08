@@ -50,10 +50,8 @@ object Application extends Controller {
       Database.users.find(query).one[User].map[Result]{ r => r.map { user =>
         val u = user.copy(password = "****")
         Ok(Json.toJson(u)).withSession(USER_CACHE -> u.username)
-      } getOrElse BadRequest("Wrong login or password")
-    }.fallbackTo {
-        Future.successful(InternalServerError)
-      }
+        } getOrElse BadRequest("Wrong login or password")
+      } fallbackTo Future.successful(InternalServerError)
     } getOrElse Future.successful(BadRequest("Wrong parameters"))
   }
   def register = Action.async { req =>
@@ -71,7 +69,7 @@ object Application extends Controller {
 
       shareholders.flatMap { sholders =>
         val newuser = user.copy(shareholders = sholders)
-        Database.users.insert(user).map[Result] { err =>
+        Database.users.insert(newuser).map[Result] { err =>
           Created(Json.obj("success" -> "true", "err" -> err.updatedExisting))
         } fallbackTo Future.successful(BadRequest(Json.obj("err" -> "User already exists")))
       } fallbackTo Future.successful(InternalServerError)
