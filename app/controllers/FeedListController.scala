@@ -1,6 +1,6 @@
 package controllers
 
-import controllers.helpers.{Helpers, Memoize}
+import services.helpers.{Helpers, Memoize}
 import models.{FeedData, FeedItem}
 import play.api.mvc._
 import play.api.libs.json._
@@ -12,8 +12,8 @@ import play.api.Play.current
 import services.database._
 import scala.concurrent.Future
 import scala.concurrent.duration._
-import helpers.Helpers.$
-import helpers.Helpers.$arr
+import services.helpers.Helpers.$
+import services.helpers.Helpers.$arr
 import Application.authorized
 
 object FeedListController extends Controller{

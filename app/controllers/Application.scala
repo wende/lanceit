@@ -21,7 +21,7 @@ import scala.concurrent.Future
 import models.JsonFormats._
 import scala.pickling._
 import scala.pickling.json._
-
+import services.helpers.Helpers._
 object Application extends Controller {
 
   val USER_CACHE = "username"
@@ -58,12 +58,24 @@ object Application extends Controller {
   def register = Action.async { req =>
     val selector = Json.obj("unique" -> true)
     Json.fromJson[User](req.body.asJson.get).map { user =>
-      Database.users.insert(user).map { err =>
-        Created(Json.obj("success" -> "true", "err" -> err.updatedExisting))
-      } fallbackTo Future.successful(BadRequest(Json.obj("err" -> "User already exists")))
+      val shareholders = user.shareholders.headOption.map { shareuser =>
+        Database.users.find($("username" -> shareuser)).one[User].map { shareholder =>
+          val sholders = shareholder.get.shareholders
+          sholders.length match {
+            case 5 => (shareuser :: sholders).dropRight(1)
+            case _ =>  shareuser :: sholders
+          }
+        } fallbackTo Future.successful(List())
+      } getOrElse Future.successful(List())
+
+      shareholders.flatMap { sholders =>
+        val newuser = user.copy(shareholders = sholders)
+        Database.users.insert(user).map[Result] { err =>
+          Created(Json.obj("success" -> "true", "err" -> err.updatedExisting))
+        } fallbackTo Future.successful(BadRequest(Json.obj("err" -> "User already exists")))
+      } fallbackTo Future.successful(InternalServerError)
     } getOrElse Future.successful(BadRequest(Json.obj("err" -> "Insufficient parameters")))
   }
-  import Predef.implicitly
   def authorized(block : (User) => Future[Result] )(implicit req : Request[_]) : Future[Result] = {
     req.session.get(USER_CACHE).map { session =>
       val user = Cache.getAs[User](USER_CACHE)

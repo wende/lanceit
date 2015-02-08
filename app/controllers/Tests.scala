@@ -1,8 +1,8 @@
 package controllers
 
 import actors.WebSocketActor
-import controllers.helpers.{Helpers, Memoize}
-import controllers.helpers.Memoize.functionToMemoizer
+import services.helpers.{Helpers, Memoize}
+import services.helpers.Memoize.functionToMemoizer
 import models.JsonFormats._
 import models.User
 import play.api.Play.current

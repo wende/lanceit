@@ -36,7 +36,7 @@ class ApplicationSpec extends Specification {
     }*/
 
     "pickle things" in new WithApplication() {
-      import controllers.helpers.Vinegar._
+      import services.helpers.Vinegar._
       val my = MyPickle(Some(List(BSONObjectID.generate)))
       my must equalTo(JSONPickle(my.pickle.value).unpickle[MyPickle])
 

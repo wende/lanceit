@@ -1,12 +1,24 @@
-val x = 10
-val k = 2
-val iloscKul = 3
+import play.api.libs.concurrent.Akka
 
-var suma = 0.0
-var mnożnik = 1000
-do {
-  suma = k*mnożnik * (1- Math.pow(2,iloscKul)) / (-1)
-  mnożnik/=2
-} while(suma > x*1000)
+import scala.concurrent.{Await, Future}
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 
-println(suma)
+val a = Future(Option(Future(Option(10))))
+
+a.map { b =>
+  b.map { c =>
+    c.map { d =>
+      d.map { res =>
+        res + 10
+      }
+    }
+  }
+}
+
+for {
+  b <- a
+  c <- b.get
+} yield c.get + 10
+
+List(1,2,3,4).dropRight(1)

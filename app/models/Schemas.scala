@@ -29,7 +29,8 @@ case class User(
   password: String,
   balance : Option[Double] = Some(0.0),
   feeds : Option[List[BSONObjectID]] = Some(List[BSONObjectID]()),
-  activeFeeds : Option[List[BSONObjectID]] = Some(List[BSONObjectID]())
+  activeFeeds : Option[List[BSONObjectID]] = Some(List[BSONObjectID]()),
+  shareholders: List[String] = List()
 )
 
 case class FeedData
