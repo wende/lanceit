@@ -6,7 +6,6 @@
 GET         /                                                  controllers.Application.index
 GET         /index.html                                        controllers.Assets.at(path="/public", file="/homepage/index-android.html")
 
-GET         /change                                            controllers.Application.change
 GET         /mail                                              controllers.Application.mail
 GET         /socket                                            controllers.Application.socket
 

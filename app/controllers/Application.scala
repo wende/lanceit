@@ -30,9 +30,6 @@ object Application extends Controller {
   def index = Action {
     Redirect("assets/homepage/index-android.html")
   }
-  def change = Action {
-   Ok
-  }
 
   case class LoginData(username : String, password: String)
   val loginForm = Form(mapping (
