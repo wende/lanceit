@@ -33,4 +33,4 @@ GET         /google242ae070998d9084.html                       controllers.Asset
 GET         /memoize/:param                                    controllers.Tests.memoization(param : Int)
 
 # Map static resources from the /public folder to the /assets URL path
-GET         /assets/*file                                      controllers.Assets.at(path="/public", file)
+GET         /*file                                              controllers.Assets.at(path="/public", file)

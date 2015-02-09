@@ -28,7 +28,7 @@ object Application extends Controller {
   val USER_CACHE = "username"
 
   def index = Action {
-    Redirect("assets/homepage/index-android.html")
+    Redirect("/homepage/index-android.html")
   }
 
   case class LoginData(username : String, password: String)
