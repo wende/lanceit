@@ -33,12 +33,12 @@ object Newsletter extends Controller {
 
   def register = Action.async { implicit req =>
     val NewsletterForm(email, fullname) = newsletterForm.bindFromRequest().value.get
-    val ni = NewsletterUser(BSONObjectID.generate, email, Option(fullname))
+    val ni = NewsletterUser(BSONObjectID.generate, email, Some(fullname))
     Database.newsletter.insert(ni).map { _ =>
       val mail = views.html.newsletter.welcome(fullname, Contents.hello, Contents.leftContent, Contents.rightContent, email)
       Mail.sendMail(Contents.witaj, mail)(List(email))
-      Ok
-    } fallbackTo (Future successful BadRequest)
+      Redirect(routes.Application.index())
+    } fallbackTo (Future successful BadRequest("Bad Request"))
   }
   def unregister(email: String) = Action.async{
     Database.newsletter.remove($("email" -> email)).map { _ =>
