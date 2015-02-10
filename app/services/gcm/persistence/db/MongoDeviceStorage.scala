@@ -8,7 +8,7 @@ import play.api.libs.concurrent.Execution.Implicits._
 
 import scala.concurrent.Future
 
-abstract class MongoDeviceStorage(collection : JSONCollection) extends DeviceStore {
+class MongoDeviceStorage(collection : JSONCollection) extends DeviceStore {
   def query(implicit device : Device) = Json.obj("id" -> device.registrationId)
   def query(id : String) = Json.obj("id" -> id)
 
@@ -24,7 +24,11 @@ abstract class MongoDeviceStorage(collection : JSONCollection) extends DeviceSto
     collection.find(Json.obj()).cursor[JsObject].collect[List]().map{ _.map {_ \ "id" toString} map Device.apply}
   }
 
-  override def updateRegistrationId(oldId: String, newId: String): Future[LastError] = ???
+  override def updateRegistrationId(oldId: String, newId: String): Future[LastError] = {
+    collection.update(query(oldId), query(newId))
+  }
 
-  override def delete(device: Device): Future[LastError] = ???
+  override def delete(device: Device): Future[LastError] = {
+    collection.remove(query(device))
+  }
 }

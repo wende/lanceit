@@ -1,6 +1,9 @@
 package models
 
 import persistence.db.H2DbDeviceStorage
+import services.gcm.persistence.db.{DeviceStore, MongoDeviceStorage}
+
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * Class to represent a device, we only store registration id but we could link the device to an user account
@@ -10,9 +13,9 @@ case class Device(var registrationId: String)
 
 object Device {
 
-  def createAndStore(regId: String) { H2DbDeviceStorage store Device(regId) }
+  def createAndStore(regId: String)(implicit storage: DeviceStore) { storage store Device(regId) }
 
-  def delete(regId: String) { H2DbDeviceStorage delete Device(regId) }
+  def delete(regId: String)(implicit storage: DeviceStore) { storage delete Device(regId) }
 
-  def allRegistrationIds: Array[String] = { H2DbDeviceStorage.all map (x => x.registrationId) }
+  def allRegistrationIds(implicit storage: DeviceStore, ec: ExecutionContext): Future[List[String]] = { storage.all map (x => x.map {_.registrationId}) }
 }

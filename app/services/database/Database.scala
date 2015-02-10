@@ -13,6 +13,7 @@ import reactivemongo.api._
 
 object Database extends Controller with MongoController{
 
+  val gcm: JSONCollection = unique("id")(db.collection[JSONCollection]("gcm"))
   val users: JSONCollection = unique("username")(db.collection[JSONCollection]("users"))
   val feeds : JSONCollection = index("expireAt")(geo("loc")(db.collection[JSONCollection]("feeds")))
   val newsletter : JSONCollection = unique("email")(db.collection[JSONCollection]("newsletter"))

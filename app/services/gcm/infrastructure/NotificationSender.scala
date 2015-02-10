@@ -16,9 +16,9 @@ object NotificationSender {
 
   val Sender: Sender = new Sender("API_KEY")
 
-  def push(notification: Notification, regIdsList: Array[String]): List[Future[MulticastResult]] = {
+  def push(notification: Notification, regIdsList: List[String]): List[Future[MulticastResult]] = {
     val message = notification.asMessage
-    (regIdsList chunk MaxMulticastSize map (regIds => {
+    (regIdsList.toArray chunk MaxMulticastSize map (regIds => {
       Future (Sender send(message, regIds.toList, 5))
     })).toList
   }

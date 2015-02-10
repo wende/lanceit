@@ -2,14 +2,23 @@ package controllers
 
 import infrastructure.NotificationSender
 import models.Device
-import play.api.mvc.{Action, Controller}
+import play.api.mvc.{Result, Action, Controller}
+import services.database.Database
+import services.gcm.persistence.db.MongoDeviceStorage
 import views.html
 
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
 import scala.util.parsing.json.JSONArray
+import scala.async.Async._
+import models.Notification.NotificationFormat
+import play.api.libs.concurrent.Execution.Implicits._
+import play.api.libs.json.Json.fromJson
+import utils.Results._
 
 
 object NotificationService extends Controller {
+
+  implicit val storage = new MongoDeviceStorage(Database.gcm)
 
   def register = Action(parse.json) {
     implicit request =>
@@ -22,26 +31,18 @@ object NotificationService extends Controller {
     Ok("Device unregistered")
   }
 
-  def pushNotification() = Action.async(parse.json) {
-    implicit request =>
-      import models.Notification.NotificationFormat
-      import play.api.libs.concurrent.Execution.Implicits._
-      import play.api.libs.json.Json.fromJson
-      import utils.Results._
-
-      val allRegistrationIds = Device.allRegistrationIds
-      val promiseOfMulticastResults = Future.sequence(NotificationSender push(fromJson(request.body).get, allRegistrationIds))
+  def pushNotification = Action.async(parse.json) { implicit request =>
+      async[Status] {
+        val allRegistrationIds = await(Device.allRegistrationIds)
+        val promiseOfMulticastResults = Future.sequence(NotificationSender push(fromJson(request.body).get, allRegistrationIds))
 
 
-      promiseOfMulticastResults.toResults.map(results => {
+        val results = await(promiseOfMulticastResults.toResults)
         results zip Stream.from(0) map {
           case (result, currentDeviceIndex) => NotificationSender handleResult(allRegistrationIds(currentDeviceIndex), result)
         }
-        NoContent
-      }).recover({
-        case _ => NoContent
-      })
-
+        BadRequest
+      } recover {case _ => InternalServerError}
   }
 
   def index = Action {
@@ -49,9 +50,9 @@ object NotificationService extends Controller {
   }
 
 
-  def list = Action {
+  def list = Action.async {
     implicit request =>
-      Ok(JSONArray(Device.allRegistrationIds.toList).toString())
+      Device.allRegistrationIds.map { a => Ok(JSONArray(a).toString())}
   }
 
 }
