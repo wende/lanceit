@@ -8,6 +8,7 @@ GET         /index.html                                        controllers.Asset
 
 GET         /mail                                              controllers.Application.mail
 GET         /socket                                            controllers.Application.socket
+GET         /mailtemplate                                      controllers.Newsletter.mailTemplate
 
 POST        /login                                             controllers.Application.login
 POST        /register                                          controllers.Application.register
@@ -23,8 +24,8 @@ GET         /list/take/:id                                     controllers.FeedL
 
 POST        /list/add                                          controllers.FeedListController.add
 
-GET         /newsletter/register                              controllers.Newsletter.register(email : String, fullname : Option[String])
-GET         /newsletter/unregister                            controllers.Newsletter.unregister(email : String)
+GET         /newsletter/register                               controllers.Newsletter.register(email : String, fullname : Option[String])
+GET         /newsletter/unregister                             controllers.Newsletter.unregister(email : String)
 GET         /newsletter/sendHello                              controllers.Newsletter.sendHello(email : String, fullname : Option[String])
 
 GET         /loaderio-5d49d4113659c016bdb075c07a13baf9/        controllers.Assets.at(path="/public", file="loaderio-5d49d4113659c016bdb075c07a13baf9.txt")
@@ -33,4 +34,4 @@ GET         /google242ae070998d9084.html                       controllers.Asset
 GET         /memoize/:param                                    controllers.Tests.memoization(param : Int)
 
 # Map static resources from the /public folder to the /assets URL path
-GET         /*file                                              controllers.Assets.at(path="/public", file)
+GET         /*file                                             controllers.Assets.at(path="/public", file)

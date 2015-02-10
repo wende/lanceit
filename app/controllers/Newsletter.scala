@@ -31,7 +31,7 @@ object Newsletter extends Controller {
       val mail = views.html.newsletter.welcome(fullname.getOrElse(""), Contents.hello, Contents.leftContent, Contents.rightContent, email)
       Mail.sendMail(Contents.witaj, mail)(List(email))
       Ok
-    } fallbackTo (Future successful InternalServerError)
+    } fallbackTo (Future successful BadRequest)
   }
   def unregister(email: String) = Action.async{
     Database.newsletter.remove($("email" -> email)).map { _ =>
@@ -67,6 +67,9 @@ object Newsletter extends Controller {
   }
 
 
+  def mailTemplate() = Action { implicit  req =>
+    Ok(views.html.newsletter.welcome("", Contents.hello, Contents.leftContent, Contents.rightContent, ""))
+  }
 }
 
 
@@ -75,15 +78,14 @@ object Contents {
     """
        Cieszymy się, że zechciałeś dołączyć do newslettera LanceIt. Razem z zespołem dokonujemy
        pełnych starań aby wypuścić platformę jak najwcześniej.<br>
-       Jednocześnie informujemy, że pierwsi użytkownicy będą nagradzani wyjątkowymi nagrodami i
-       przywilejami.
+       Jednocześnie informujemy, że pierwsi użytkownicy będą nagradzani wyjątkowymi nagrodami i przywilejami.
 
        Pozdrawiam,
        Krzysztof Wende,
        LanceIt
     """.stripMargin.trim.replace("\n","<br>"))
-  val leftContent = Html("Zlecaj")
-  val rightContent = Html("Wykonuj")
+  val leftContent = Html("Zlecaj pracę")
+  val rightContent = Html("Wykonuj zlecenia")
   val witaj = "Witaj!"
 
 }
