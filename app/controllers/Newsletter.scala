@@ -25,10 +25,17 @@ object Newsletter extends Controller {
 
   implicit val newsletterFormat = Json.format[NewsletterUser]
 
-  def register(email : String, fullname : Option[String]) = Action.async { implicit req =>
-    val ni = NewsletterUser(BSONObjectID.generate, email, fullname)
+  case class NewsletterForm(email : String, fullname : String)
+  val newsletterForm = Form( mapping(
+    "email" -> text,
+    "fullname" -> text
+  )(NewsletterForm.apply)(NewsletterForm.unapply))
+
+  def register = Action.async { implicit req =>
+    val NewsletterForm(email, fullname) = newsletterForm.bindFromRequest().value.get
+    val ni = NewsletterUser(BSONObjectID.generate, email, Option(fullname))
     Database.newsletter.insert(ni).map { _ =>
-      val mail = views.html.newsletter.welcome(fullname.getOrElse(""), Contents.hello, Contents.leftContent, Contents.rightContent, email)
+      val mail = views.html.newsletter.welcome(fullname, Contents.hello, Contents.leftContent, Contents.rightContent, email)
       Mail.sendMail(Contents.witaj, mail)(List(email))
       Ok
     } fallbackTo (Future successful BadRequest)

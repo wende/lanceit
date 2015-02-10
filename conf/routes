@@ -24,7 +24,7 @@ GET         /list/take/:id                                     controllers.FeedL
 
 POST        /list/add                                          controllers.FeedListController.add
 
-POST        /newsletter/register                               controllers.Newsletter.register(email : String, fullname : Option[String])
+POST        /newsletter/register                               controllers.Newsletter.register
 GET         /newsletter/unregister                             controllers.Newsletter.unregister(email : String)
 GET         /newsletter/sendHello                              controllers.Newsletter.sendHello(email : String, fullname : Option[String])
 
