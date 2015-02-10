@@ -1,6 +1,6 @@
 package models
 
-import persistence.db.H2DbDeviceStorage
+import reactivemongo.core.commands.LastError
 import services.gcm.persistence.db.{DeviceStore, MongoDeviceStorage}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -13,9 +13,9 @@ case class Device(var registrationId: String)
 
 object Device {
 
-  def createAndStore(regId: String)(implicit storage: DeviceStore) { storage store Device(regId) }
+  def createAndStore(regId: String)(implicit storage: DeviceStore): Future[LastError] = { storage store Device(regId) }
 
-  def delete(regId: String)(implicit storage: DeviceStore) { storage delete Device(regId) }
+  def delete(regId: String)(implicit storage: DeviceStore) = { storage delete Device(regId) }
 
   def allRegistrationIds(implicit storage: DeviceStore, ec: ExecutionContext): Future[List[String]] = { storage.all map (x => x.map {_.registrationId}) }
 }

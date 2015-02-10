@@ -10,5 +10,6 @@ trait DeviceStore {
   def all() : Future[List[Device]]
   def findByRegistrationId(regId : String) : Future[Option[Device]]
   def delete(device : Device) : Future[LastError]
+  def delete(id : String) : Future[LastError]
   def updateRegistrationId(oldId: String, newId: String): Future[LastError]
 }

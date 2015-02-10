@@ -20,15 +20,16 @@ object NotificationService extends Controller {
 
   implicit val storage = new MongoDeviceStorage(Database.gcm)
 
-  def register = Action(parse.json) {
-    implicit request =>
-      Device createAndStore (request.body \ "registrationId").as[String]
+  def register = Action.async(parse.json) { implicit request =>
+    Device createAndStore (request.body \ "registrationId").as[String] map { _ =>
       Ok("Device registered")
+    } fallbackTo Future.successful(InternalServerError)
   }
 
-  def unregister(regId: String) = Action {
-    Device.delete(regId)
-    Ok("Device unregistered")
+  def unregister(regId: String) = Action.async(parse.json) { req =>
+    Device.delete(regId) map { _ =>
+      Ok("Device unregistered")
+    } fallbackTo Future.successful(InternalServerError)
   }
 
   def pushNotification = Action.async(parse.json) { implicit request =>
@@ -49,10 +50,8 @@ object NotificationService extends Controller {
     Ok(html.index())
   }
 
-
   def list = Action.async {
     implicit request =>
       Device.allRegistrationIds.map { a => Ok(JSONArray(a).toString())}
   }
-
 }

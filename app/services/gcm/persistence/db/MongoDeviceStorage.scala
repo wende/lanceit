@@ -31,4 +31,5 @@ class MongoDeviceStorage(collection : JSONCollection) extends DeviceStore {
   override def delete(device: Device): Future[LastError] = {
     collection.remove(query(device))
   }
+  override def delete(id: String) = delete(Device(id))
 }
