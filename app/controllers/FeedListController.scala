@@ -5,11 +5,11 @@ import models.{FeedData, FeedItem}
 import play.api.mvc._
 import play.api.libs.json._
 import models.JsonFormats._
-import play.api.libs.concurrent.Execution.Implicits._
 import reactivemongo.bson._
 import play.modules.reactivemongo.json.BSONFormats._
 import play.api.Play.current
 import services.database._
+import play.api.libs.concurrent.Execution.Implicits._
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import services.helpers.Helpers.$
@@ -25,13 +25,13 @@ object FeedListController extends Controller{
   def get = Action.async {
     val selector = $("expireAt" -> $("$gt" -> BSONDateTime(Helpers.now)))
     Database.feeds.find(selector).cursor[FeedItem].collect[List]().map {
-      feeds => Ok(Json.toJson( Json obj "feeds" -> feeds ))
+      feeds => Ok($("feeds" -> feeds,  "timestamp" -> Helpers.now))
     }
   }
   def getByLatLng(lat : Double, lng : Double, max: Double = maxDistance) = Action.async {
     val selector = $("expireAt" -> $("$gt" -> BSONDateTime(Helpers.now)), "loc" -> near(lat,lng,max))
     Database.feeds.find(selector).cursor[FeedItem].collect[List]().map {
-      feeds => Ok(Json.toJson( Json obj "feeds" -> feeds ))
+      feeds => Ok($("feeds" -> feeds, "timestamp" -> Helpers.now))
     } fallbackTo Future.successful(InternalServerError)
   }
   def getByLatLngMax(lat: Double, lng: Double, max: Double) = {

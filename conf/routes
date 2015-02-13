@@ -37,5 +37,9 @@ GET         /memoize/:param                                    controllers.Tests
 POST        /gcm/register                                      controllers.NotificationService.register
 GET         /gcm/unregister                                    controllers.NotificationService.unregister(reqId : String)
 
+
 # Map static resources from the /public folder to the /assets URL path
 GET         /*file                                             controllers.Assets.at(path="/public", file)
+
+
+
