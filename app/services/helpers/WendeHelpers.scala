@@ -24,6 +24,18 @@ object Helpers {
   def $arr(a:(JsValueWrapper)*) = Json.arr(a:_*)
 
   def now = Calendar.getInstance().getTimeInMillis
+
+  val MOD_ADLER = 65521
+  def adler32sum(s: String): Int = {
+    var a = 1
+    var b = 0
+    s.getBytes.foreach(char => {
+      a = (char + a) % MOD_ADLER
+      b = (b + a) % MOD_ADLER
+    })
+    // note: Int is 32 bits, which this requires
+    b * 65536 + a     // or (b << 16) + a
+  }
 }
 case class Memoize[-T , +R : ClassTag](duration : Duration, refreshOnGet : Boolean = false)(f: T => R)
                                       (implicit app : Application) extends (T => R) {

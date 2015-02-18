@@ -3,6 +3,9 @@ package models
 import org.joda.time.DateTime
 import play.api.libs.json.Format
 import reactivemongo.bson.{BSONArray, BSONDateTime, BSONObjectID}
+import services.helpers.Helpers
+
+import scala.util.Try
 
 // Not unused at all. Do not delete
 import play.modules.reactivemongo.json.BSONFormats._
@@ -29,7 +32,8 @@ case class User(
   balance : Option[Double] = Some(0.0),
   feeds : Option[List[BSONObjectID]] = Some(List[BSONObjectID]()),
   activeFeeds : Option[List[BSONObjectID]] = Some(List[BSONObjectID]()),
-  shareholders: List[String] = List()
+  shareholders: List[String] = List(),
+  titles : List[String] = List()
 )
 
 case class FeedData
@@ -76,3 +80,53 @@ case class Point(lat: Double, lng : Double){
   lazy val toBSON = GeoBSON("Point", List(lat, lng))
 }
 case class GeoBSON(`type` : String, coordinates: List[Double] )
+
+
+// ========================================================
+//================= PROMOTIONAL CODES =====================
+// ========================================================
+
+case class Code(code: String) {
+  lazy val title      = code.substring(0,3)
+  lazy val id         = code.substring(3,3+Code.idLength)
+  lazy val checksum   = code.substring(3+Code.idLength)
+}
+object Code {
+  lazy val idLength = BSONObjectID.generate.stringify.length
+  def parse(string: String) = {
+    Try {
+      val title = Title(string.substring(0,3)).get
+      val id = BSONObjectID(string.substring(3, 3 + idLength ).reverse).stringify
+      assert (Helpers.adler32sum(title.code + id.reverse).toString == string.substring(3 + idLength), {
+        println(string)
+        println(title.code)
+        println(id.reverse)
+        println(Helpers.adler32sum(title.code+id.reverse))
+      })
+      title
+    }
+  }
+  def generate(titleCode: String)  = Try[Code]{
+    val title = Title(titleCode).get
+    val code = title.code + BSONObjectID.generate.stringify.reverse
+    Code(code + Helpers.adler32sum(code).toString)
+  }
+}
+
+trait Benefit
+case class Discount() extends Benefit
+abstract class Title(val code : String, val name : String) {
+  val benefits : List[Benefit] = List()
+}
+object Title {
+  def apply(code : String ) ={
+    Option[Title](code match {
+      case "VIP" => VIP()
+      case _ => null
+    })
+  }
+
+}
+case class VIP() extends Title("VIP", "VIP") {
+  override val benefits = List()
+}

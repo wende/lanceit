@@ -105,4 +105,15 @@ object FeedListController extends Controller{
     }
   }
 
+  /*def nextStage(id: String, stage: Int) = Action.async { implicit  req =>
+    authorized { user =>
+      Database.feeds.find($("_id" -> BSONObjectID(id))).one[FeedItem].map { item =>
+        require(stage == item.get.stage + 1, "Wrong stage")
+        (item.get.stage, user) match {
+          case (1, ) // TODO finish
+        }
+        Ok
+      } fallbackTo Future.successful(BadRequest)
+    }
+  }*/
 }
