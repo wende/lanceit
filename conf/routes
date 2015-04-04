@@ -20,10 +20,11 @@ GET         /list/get/:lat/:lng                                controllers.FeedL
 GET         /list/get/:lat/:lng/:max                           controllers.FeedListController.getByLatLngMax(lat : Double, lng : Double, max: Double)
 GET         /list/yours                                        controllers.FeedListController.yours
 GET         /list/active                                       controllers.FeedListController.active
+POST        /list/active/:id/stage/:stage                      controllers.FeedListController.nextStage(id: String, stage:Int)
+
 GET         /list/take/:id                                     controllers.FeedListController.take(id : String)
 
 POST        /list/add                                          controllers.FeedListController.add
-#POST        /active/:id/stage/:stage                           controllers.FeedListController.nextStage(id: String, stage:Int)
 
 
 POST        /newsletter/register                               controllers.Newsletter.register

@@ -16,6 +16,7 @@ object JsonFormats {
 
   // Generates Writes and Reads for Feed and User thanks to Json Macros
 
+  implicit val attendantFormat = Json.format[Attendant]
   implicit val geoFormat  = Json.format[GeoBSON]
   implicit val feedDataFormat = Json.format[FeedData]
   implicit val feedFormat = Json.format[FeedItem]
@@ -30,10 +31,10 @@ case class User(
   email: String,
   password: String,
   balance : Option[Double] = Some(0.0),
-  feeds : Option[List[BSONObjectID]] = Some(List[BSONObjectID]()),
-  activeFeeds : Option[List[BSONObjectID]] = Some(List[BSONObjectID]()),
+  feeds : Option[List[BSONObjectID]] = Some(List()),
+  activeFeeds : Option[List[BSONObjectID]] = Some(List()),
   shareholders: List[String] = List(),
-  titles : List[String] = List()
+  titles : Option[List[String]] = Some(List())
 )
 
 case class FeedData
@@ -74,8 +75,11 @@ case class FeedItem
   createdAt: BSONDateTime,
   expireAt: BSONDateTime,
   stage: Int = 0,
-  completed: Boolean = false)
-
+  attendants: List[Attendant] = List(),
+  contractor: Option[String] = None,
+  completed: Boolean = false
+  )
+case class Attendant(username: String, expired: Boolean = false)
 case class Point(lat: Double, lng : Double){
   lazy val toBSON = GeoBSON("Point", List(lat, lng))
 }

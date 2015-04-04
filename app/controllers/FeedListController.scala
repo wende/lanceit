@@ -1,7 +1,8 @@
 package controllers
 
+import play.api.libs.json.Json.JsValueWrapper
 import services.helpers.{Helpers, Memoize}
-import models.{FeedData, FeedItem}
+import models.{Attendant, FeedData, FeedItem}
 import play.api.mvc._
 import play.api.libs.json._
 import models.JsonFormats._
@@ -15,7 +16,7 @@ import scala.concurrent.duration._
 import services.helpers.Helpers.$
 import services.helpers.Helpers.$arr
 import Application.authorized
-
+import async.Async._
 object FeedListController extends Controller{
 
   val maxDistance = 20000;
@@ -89,31 +90,56 @@ object FeedListController extends Controller{
     }
   }
 
-  def take(id: String) = Action.async { implicit req =>
-    authorized { user =>
-      BSONObjectID.parse(id).map { _id =>
-        Database.feeds.find($("_id" -> _id)).one[FeedItem].flatMap { feedOpt =>
-          feedOpt.map { feed =>
-            val selector = $("username" -> feed.username)
-            val update = $("$push" -> $("activeFeeds" -> feed._id))
-            Database.users.update(selector, update).map { _ =>
-              Ok($("feed" -> feed))
-            } fallbackTo Future.successful(InternalServerError)
-          } getOrElse Future.successful(Ok($("feed" -> "")))
-        } fallbackTo Future.successful(InternalServerError)
-      } getOrElse Future.successful(BadRequest)
-    }
-  }
+  def take(id: String) = Action.async (implicit req => authorized { user =>
+    async {
+      val _id = BSONObjectID(id)
+      val selector = $("_id" -> _id)
+      val feed = await(Database.feeds.find(selector).one[FeedItem]).get
+      val newfeed = feed.copy(attendants = Attendant(user.username) :: feed.attendants)
 
-  /*def nextStage(id: String, stage: Int) = Action.async { implicit  req =>
-    authorized { user =>
-      Database.feeds.find($("_id" -> BSONObjectID(id))).one[FeedItem].map { item =>
-        require(stage == item.get.stage + 1, "Wrong stage")
-        (item.get.stage, user) match {
-          case (1, ) // TODO finish
+      //TODO SCHEDULE AUTOREMOVAL
+
+      await(Database.feeds.update(selector, $("$push" -> $("attendants" -> Attendant(user.username)))))
+    } map { _ =>
+      Ok($("success" -> "true"))
+    } fallbackTo Future.successful(BadRequest)
+  })
+
+  def acceptTaking(id: String, contractor : String) = Action.async(implicit req => authorized { user =>
+    async {
+      val _id = BSONObjectID(id)
+
+      val idSelector = $("_id" -> _id)
+      val contractorSelector = $("username" -> contractor)
+
+      val feed = await(Database.feeds.find(idSelector).one[FeedItem]).get
+
+      val feedUpdate        = Database.feeds.update(idSelector,         $("$set" -> $("contractor" -> contractor)))
+      val contractorUpdate  = Database.users.update(contractorSelector, $("$push" -> $("activeFeeds" -> feed._id)))
+
+      (await(feedUpdate) , await(contractorUpdate))
+    } map { _ =>
+      Ok
+    } fallbackTo Future.successful(BadRequest)
+  })
+
+  def nextStage(id: String, stage: Int) = Action.async (implicit  req => authorized { user =>
+    playFuture {
+      async {
+        val feedSelector = $("_id" -> BSONObjectID(id))
+        val feed = await(Database.feeds.find(feedSelector).one[FeedItem]).get
+        feed.stage match {
+          case _ => 0
         }
-        Ok
-      } fallbackTo Future.successful(BadRequest)
+        await(Database.feeds.update(feedSelector, $("$set" -> $("stage" -> stage))))
+      }
     }
-  }*/
+  })
+
+  def playFuture(block : => Future[_]) : Future[Result] = {
+    block.map {
+      case r: JsObject => Ok($("success" -> "true", "result" -> r))
+      case _ => Ok($("success" -> "true"))
+    } fallbackTo Future.successful(BadRequest)
+  }
 }
